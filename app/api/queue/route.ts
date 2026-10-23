@@ -5,15 +5,37 @@ import { seedState, type QueueState } from "@/lib/triage-data";
 
 const STATE_ID = 1;
 
+function normalizeSeedTimes(state: QueueState) {
+  const newest = state.questions[0]?.submittedAt;
+  if (!newest || Date.now() - new Date(newest).getTime() < 24 * 60 * 60 * 1000) return state;
+  return {
+    ...state,
+    questions: state.questions.map((question, index) => ({
+      ...question,
+      submittedAt: new Date(Date.now() - (index + 2) * 78000).toISOString(),
+    })),
+  };
+}
+
 export async function GET() {
   try {
     const db = getDb();
     const [row] = await db.select().from(queueState).where(eq(queueState.id, STATE_ID));
-    if (row) return Response.json({ state: JSON.parse(row.payload), updatedAt: row.updatedAt });
+    if (row) {
+      const parsed = JSON.parse(row.payload) as QueueState;
+      const state = normalizeSeedTimes(parsed);
+      if (state !== parsed) {
+        const updatedAt = new Date().toISOString();
+        await db.update(queueState).set({ payload: JSON.stringify(state), updatedAt }).where(eq(queueState.id, STATE_ID));
+        return Response.json({ state, updatedAt });
+      }
+      return Response.json({ state, updatedAt: row.updatedAt });
+    }
 
     const now = new Date().toISOString();
-    await db.insert(queueState).values({ id: STATE_ID, payload: JSON.stringify(seedState), revision: 1, updatedAt: now });
-    return Response.json({ state: seedState, updatedAt: now });
+    const state = normalizeSeedTimes(seedState);
+    await db.insert(queueState).values({ id: STATE_ID, payload: JSON.stringify(state), revision: 1, updatedAt: now });
+    return Response.json({ state, updatedAt: now });
   } catch {
     return Response.json({ state: seedState, demo: true });
   }
