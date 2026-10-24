@@ -138,3 +138,60 @@ button {
   border-color: #cbd5e1;
   color: #18212f;
 }
+
+.cluster-map {
+  background-image: radial-gradient(var(--dot-grid) 0.75px, transparent 0.75px);
+  background-size: 18px 18px;
+}
+
+.cluster-node {
+  position: relative;
+  width: 245px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  padding: 0.9rem;
+  box-shadow: 0 9px 22px rgba(35, 39, 32, 0.08);
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.cluster-node:hover {
+  border-color: color-mix(in srgb, var(--cluster-color) 55%, var(--border));
+  transform: translateY(-2px);
+}
+
+.cluster-node.is-selected {
+  border-color: var(--cluster-color);
+  box-shadow: 0 0 0 1px var(--cluster-color), 0 13px 27px rgba(35, 39, 32, 0.11);
+}
+
+.cluster-node-accent {
+  position: absolute;
+  inset: -1px -1px auto;
+  height: 3px;
+  background: var(--cluster-color);
+}
+
+.cluster-action {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid var(--border);
+  background: var(--background);
+  padding: 0.35rem 0.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  transition: color 140ms ease, border-color 140ms ease;
+}
+
+.cluster-action:hover {
+  border-color: var(--ring);
+  color: var(--foreground);
+}
+
+@media (min-width: 1024px) {
+  .cluster-node {
+    position: absolute;
+  }
+}
