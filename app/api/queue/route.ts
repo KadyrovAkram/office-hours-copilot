@@ -4,6 +4,8 @@ import { queueState } from "@/db/schema";
 import { seedState, type QueueState } from "@/lib/triage-data";
 
 const STATE_ID = 1;
+let demoState: QueueState;
+let demoUpdatedAt = new Date().toISOString();
 
 function normalizeSeedTimes(state: QueueState) {
   const newest = state.questions[0]?.submittedAt;
@@ -37,22 +39,31 @@ export async function GET() {
     await db.insert(queueState).values({ id: STATE_ID, payload: JSON.stringify(state), revision: 1, updatedAt: now });
     return Response.json({ state, updatedAt: now });
   } catch {
-    return Response.json({ state: seedState, demo: true });
+    demoState ??= normalizeSeedTimes(seedState);
+    return Response.json({ state: demoState, updatedAt: demoUpdatedAt, demo: true });
   }
 }
 
 export async function PUT(request: Request) {
+  let next: QueueState;
   try {
-    const next = (await request.json()) as QueueState;
-    if (!Array.isArray(next.questions) || !Array.isArray(next.clusters)) {
-      return Response.json({ error: "Invalid queue state" }, { status: 400 });
-    }
+    next = (await request.json()) as QueueState;
+  } catch {
+    return Response.json({ error: "Invalid queue state" }, { status: 400 });
+  }
+  if (!Array.isArray(next.questions) || !Array.isArray(next.clusters)) {
+    return Response.json({ error: "Invalid queue state" }, { status: 400 });
+  }
+
+  try {
     const db = getDb();
     const updatedAt = new Date().toISOString();
     await db.insert(queueState).values({ id: STATE_ID, payload: JSON.stringify(next), revision: next.revision, updatedAt })
       .onConflictDoUpdate({ target: queueState.id, set: { payload: JSON.stringify(next), revision: next.revision, updatedAt } });
     return Response.json({ state: next, updatedAt });
-  } catch (error) {
-    return Response.json({ error: error instanceof Error ? error.message : "Unable to save" }, { status: 500 });
+  } catch {
+    demoState = next;
+    demoUpdatedAt = new Date().toISOString();
+    return Response.json({ state: demoState, updatedAt: demoUpdatedAt, demo: true });
   }
 }

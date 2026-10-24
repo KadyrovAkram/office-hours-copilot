@@ -228,7 +228,7 @@ export function ClusterCanvas({
                     </span>
                     <span className="mt-2 block text-xs leading-5 text-muted-foreground">{cluster.insight}</span>
                     <span className="mt-3 flex flex-wrap gap-1.5 text-[10px] font-medium text-muted-foreground">
-                      <span className="rounded-full bg-[var(--panel-muted)] px-2 py-1">{longestWait(state, cluster.id)}m wait</span>
+                      <span suppressHydrationWarning className="rounded-full bg-[var(--panel-muted)] px-2 py-1">{longestWait(state, cluster.id)}m wait</span>
                       <span className="rounded-full bg-[var(--panel-muted)] px-2 py-1">{cluster.priority} priority</span>
                     </span>
                   </button>
@@ -299,7 +299,7 @@ export function ClusterCanvas({
                         <span className="min-w-0 flex-1">
                           <span className="flex items-center justify-between gap-2">
                             <strong className="truncate text-xs">{question.student}</strong>
-                            <span className="text-[10px] text-muted-foreground">{waitMinutes(question.submittedAt)}m</span>
+                            <span suppressHydrationWarning className="text-[10px] text-muted-foreground">{waitMinutes(question.submittedAt)}m</span>
                           </span>
                           <span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground">{question.summary}</span>
                         </span>

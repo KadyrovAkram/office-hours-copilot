@@ -7,6 +7,8 @@ import { LiveBriefing } from "@/components/live-briefing";
 import { StudentQueue } from "@/components/student-queue";
 import { seedState, type QueueState, type Role } from "@/lib/triage-data";
 
+const DEMO_STORAGE_KEY = "office-hours-copilot:queue";
+
 export function TriageApp() {
   const [role, setRole] = useState<Role>("ta");
   const [state, setState] = useState<QueueState>(seedState);
@@ -17,7 +19,21 @@ export function TriageApp() {
 
   useEffect(() => {
     fetch("/api/queue").then((response) => response.json()).then((data) => {
-      if (data.state) setState(data.state);
+      if (data.state) {
+        let next = data.state as QueueState;
+        if (data.demo) {
+          const stored = window.localStorage.getItem(DEMO_STORAGE_KEY);
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored) as QueueState;
+              if (parsed.revision >= next.revision) next = parsed;
+            } catch {
+              window.localStorage.removeItem(DEMO_STORAGE_KEY);
+            }
+          }
+        }
+        setState(next);
+      }
       setLoaded(true);
     }).catch(() => setLoaded(true));
   }, []);
@@ -25,6 +41,7 @@ export function TriageApp() {
   const save = (updater: (current: QueueState) => QueueState) => {
     setState((current) => {
       const next = { ...updater(current), revision: current.revision + 1 };
+      window.localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(next));
       startTransition(() => {
         void fetch("/api/queue", {
           method: "PUT",

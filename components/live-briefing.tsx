@@ -38,7 +38,7 @@ function OpportunityRow({
       <span className="text-xl font-medium tabular-nums" style={{ color: selected ? cluster.color : undefined }}>{String(count).padStart(2, "0")}</span>
       <span>
         <span className="block text-sm font-semibold text-foreground">{cluster.title}</span>
-        <span className="mt-0.5 block text-xs">{cluster.topic} · longest wait {wait}m</span>
+        <span suppressHydrationWarning className="mt-0.5 block text-xs">{cluster.topic} · longest wait {wait}m</span>
       </span>
       <span className="hidden h-5 items-end gap-0.5 sm:flex" aria-hidden="true">
         {[38, 58, 44, 72, 92].map((height, index) => (
@@ -123,7 +123,7 @@ export function LiveBriefing({ state }: { state: QueueState }) {
                 <div><p className="text-xs font-semibold">Say or show this next</p><p className="mt-1.5 text-sm leading-6 text-muted-foreground">{selected.cluster.suggestedFix}</p></div>
               </div>
               <div className="mt-5 flex items-center gap-3 border-y border-border py-4 text-xs text-muted-foreground">
-                <Users size={14} /><span>{selected.count} students affected</span><span>·</span><span>{selected.wait}m longest wait</span>
+                <Users size={14} /><span>{selected.count} students affected</span><span>·</span><span suppressHydrationWarning>{selected.wait}m longest wait</span>
               </div>
               <button
                 onClick={() => setAnnounced(true)}
