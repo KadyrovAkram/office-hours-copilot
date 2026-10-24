@@ -4,6 +4,8 @@ Turn a crowded office-hours queue into a clear teaching plan.
 
 Students submit a short description and an optional code snippet. The copilot groups similar questions, surfaces the misconception behind each cluster, and gives TAs the controls to help several students at once. Instructors get a live view of which concepts need attention.
 
+**[Try Office Hours Copilot](https://office-hours-copilot.luckyguppy514.chatgpt.site/)**
+
 ## The demo
 
 Thirty messy CSE questions collapse into six actionable clusters:
