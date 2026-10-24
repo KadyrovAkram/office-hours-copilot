@@ -2,18 +2,13 @@
 
 import { useEffect, useState, useTransition } from "react";
 import {
-  Activity, ArrowRight, BarChart3, BookOpen, Check, CheckCircle2, ChevronDown,
-  Clock3, Code2, Combine, GraduationCap, Lightbulb, Loader2,
-  MoreHorizontal, Radio, RefreshCw, Search, Sparkles, Split, Users, WandSparkles,
+  Activity, ArrowRight, BookOpen, Check, CheckCircle2, ChevronDown,
+  Clock3, Code2, Combine, Lightbulb,
+  MoreHorizontal, RefreshCw, Search, Sparkles, Split, Users,
 } from "lucide-react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { AppShell } from "@/components/app-shell";
 import { classifyQuestion, seedState, type Cluster, type QueueState, type Role } from "@/lib/triage-data";
-
-const roleMeta: Record<Role, { label: string; icon: typeof GraduationCap }> = {
-  student: { label: "Student", icon: GraduationCap },
-  ta: { label: "TA", icon: Users },
-  instructor: { label: "Instructor", icon: BarChart3 },
-};
 
 function timeAgo(iso: string) {
   const minutes = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
@@ -54,31 +49,11 @@ export function TriageApp() {
   });
 
   return (
-    <main className="min-h-screen bg-[#f4f5f7] text-[#18212f]">
-      <header className="sticky top-0 z-30 border-b border-black/6 bg-white/88 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-[1480px] items-center justify-between px-4 sm:px-7">
-          <div className="flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#6257e8] text-white shadow-sm"><WandSparkles size={18} /></div>
-            <div><p className="font-semibold tracking-[-.02em]">Office Hours Copilot</p><p className="text-[11px] text-slate-500">CSE 2221 · Software I</p></div>
-          </div>
-          <div className="hidden items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 sm:flex"><Radio size={13} /> Live session · {state.questions.length} questions</div>
-          <div className="flex items-center gap-2">
-            {isPending ? <span className="hidden items-center gap-1.5 text-xs text-slate-400 md:flex"><Loader2 className="animate-spin" size={13} /> Saving</span> : null}
-            <div className="flex rounded-xl bg-slate-100 p-1" aria-label="Preview role">
-              {(Object.keys(roleMeta) as Role[]).map((key) => {
-                const Icon = roleMeta[key].icon;
-                return <button key={key} aria-label={`Preview as ${roleMeta[key].label}`} aria-pressed={role === key} onClick={() => setRole(key)} className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${role === key ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}><Icon size={14} /><span className="hidden md:inline">{roleMeta[key].label}</span></button>;
-              })}
-            </div>
-            <div className="grid h-9 w-9 place-items-center rounded-full bg-[#18212f] text-xs font-semibold text-white">AK</div>
-          </div>
-        </div>
-      </header>
-
+    <AppShell role={role} onRoleChange={setRole} questionCount={state.questions.length} isSaving={isPending}>
       {role === "student" ? <StudentView state={state} save={save} /> : null}
       {role === "ta" ? <TAView state={state} save={save} selected={selected} selectedId={selectedId} setSelectedId={setSelectedId} visibleClusters={visibleClusters} search={search} setSearch={setSearch} loaded={loaded} /> : null}
       {role === "instructor" ? <InstructorView state={state} /> : null}
-    </main>
+    </AppShell>
   );
 }
 
