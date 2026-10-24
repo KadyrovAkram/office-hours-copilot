@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import {
   CheckCircle2,
   Combine,
   Eye,
   Lightbulb,
   ListFilter,
+  Map,
   Pencil,
   RefreshCw,
   Search,
@@ -66,12 +67,14 @@ export function ClusterCanvas({
   const [mergeMode, setMergeMode] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [interventionActive, setInterventionActive] = useState(false);
+  const [listView, setListView] = useState(false);
 
   const selected = state.clusters.find((cluster) => cluster.id === selectedId) ?? state.clusters[0];
   const selectedQuestions = useMemo(() => openQuestions(state, selected.id), [selected.id, state]);
   const activeQuestionCount = state.questions.filter((question) => !question.resolved).length;
 
   const resolve = () => {
+    const nextCluster = visibleClusters.find((cluster) => cluster.id !== selected.id);
     save((current) => ({
       ...current,
       clusters: current.clusters.map((cluster) =>
@@ -82,6 +85,7 @@ export function ClusterCanvas({
       ),
     }));
     setInterventionActive(false);
+    if (nextCluster) setSelectedId(nextCluster.id);
   };
 
   const merge = (targetId: string) => {
@@ -158,27 +162,27 @@ export function ClusterCanvas({
             <span className="text-xs text-muted-foreground">{visibleClusters.length} active clusters</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="relative hidden sm:block">
+            <div className="relative">
               <Search className="absolute left-2.5 top-2 text-muted-foreground" size={14} />
               <input
                 aria-label="Search clusters"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Filter the map"
-                className="h-8 w-44 border border-border bg-[var(--panel-muted)] pl-8 pr-2 text-xs outline-none focus:border-[var(--signal)]"
+                className="h-8 w-36 border border-border bg-[var(--panel-muted)] pl-8 pr-2 text-xs outline-none focus:border-[var(--signal)] sm:w-44"
               />
             </div>
-            <button className="inline-flex h-8 items-center gap-1.5 border border-border px-2.5 text-xs text-muted-foreground hover:text-foreground">
-              <ListFilter size={13} /> List view
+            <button onClick={() => setListView((value) => !value)} aria-pressed={listView} className="inline-flex h-8 items-center gap-1.5 border border-border px-2.5 text-xs text-muted-foreground hover:text-foreground">
+              {listView ? <Map size={13} /> : <ListFilter size={13} />} <span className="hidden sm:inline">{listView ? "Map view" : "List view"}</span>
             </button>
-            <button aria-label="Refresh clusters" className="grid h-8 w-8 place-items-center border border-border text-muted-foreground">
+            <span role="status" aria-label={loaded ? "Queue is current" : "Refreshing clusters"} className="grid h-8 w-8 place-items-center border border-border text-muted-foreground">
               <RefreshCw size={13} className={loaded ? "" : "animate-spin"} />
-            </button>
+            </span>
           </div>
         </div>
 
         <div className="grid lg:grid-cols-[minmax(0,1fr)_310px]">
-          <div className="cluster-map relative min-h-[660px] border-b border-border p-4 lg:border-r lg:border-b-0">
+          <div className={`cluster-map relative min-h-[660px] border-b border-border p-4 lg:border-r lg:border-b-0 ${listView ? "is-list" : ""}`}>
             <div className="relative z-10 flex items-start justify-between gap-4 px-1 pt-1">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Live question map</p>
@@ -193,13 +197,13 @@ export function ClusterCanvas({
               </button>
             </div>
 
-            <svg aria-hidden="true" className="pointer-events-none absolute inset-0 hidden h-full w-full lg:block" preserveAspectRatio="none">
+            <svg aria-hidden="true" className={`pointer-events-none absolute inset-0 hidden h-full w-full lg:block ${listView ? "lg:!hidden" : ""}`} preserveAspectRatio="none">
               <path d="M 214 178 C 344 178, 368 262, 470 268" fill="none" stroke="var(--border)" strokeWidth="1" />
               <path d="M 245 425 C 362 415, 410 362, 528 352" fill="none" stroke="var(--border)" strokeWidth="1" />
               <path d="M 710 168 C 656 206, 636 242, 602 294" fill="none" stroke="var(--border)" strokeWidth="1" />
             </svg>
 
-            <div className="relative z-10 mt-7 grid gap-3 sm:grid-cols-2 lg:block lg:h-[535px]">
+            <div className={`relative z-10 mt-7 grid gap-3 sm:grid-cols-2 ${listView ? "lg:grid lg:h-auto lg:grid-cols-2" : "lg:block lg:h-[535px]"}`}>
               {visibleClusters.map((cluster, index) => {
                 const questions = openQuestions(state, cluster.id);
                 const isSelected = selectedId === cluster.id;
@@ -209,12 +213,11 @@ export function ClusterCanvas({
                     key={cluster.id}
                     onClick={() => selectCluster(cluster.id)}
                     aria-pressed={isSelected}
-                    className={`cluster-node group text-left ${isSelected ? "is-selected" : ""}`}
+                    className={`cluster-node group text-left ${isSelected ? "is-selected" : ""} ${listView ? "cluster-node-list" : ""}`}
                     style={{
                       "--cluster-color": cluster.color,
-                      left: position.left,
-                      top: position.top,
-                    } as React.CSSProperties}
+                      ...(listView ? {} : { left: position.left, top: position.top }),
+                    } as CSSProperties}
                   >
                     <span className="cluster-node-accent" />
                     <span className="flex items-start justify-between gap-3">
@@ -231,6 +234,9 @@ export function ClusterCanvas({
                   </button>
                 );
               })}
+              {visibleClusters.length === 0 ? (
+                <div className="border border-dashed border-border bg-background/70 p-8 text-center text-sm text-muted-foreground sm:col-span-2">No active clusters match “{search}”.</div>
+              ) : null}
             </div>
           </div>
 

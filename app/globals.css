@@ -120,6 +120,15 @@ button {
   cursor: pointer;
 }
 
+:where(button, input, textarea, summary):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 .action-button {
   display: inline-flex;
   align-items: center;
@@ -162,6 +171,12 @@ button {
 .cluster-node.is-selected {
   border-color: var(--cluster-color);
   box-shadow: 0 0 0 1px var(--cluster-color), 0 13px 27px rgba(35, 39, 32, 0.11);
+}
+
+.cluster-node.cluster-node-list {
+  position: relative;
+  inset: auto;
+  width: 100%;
 }
 
 .cluster-node-accent {
